@@ -76,7 +76,7 @@ pre_conf() {
 	echo UserPasswordSet $USERNAME /PASSWORD:$PASSWORD | tee -a vpn.conf
 	echo SecureNatEnable | tee -a vpn.conf
 	echo SecureNatHostSet /MAC:$MACHR /IP:${IPADDR}.$start /MASK:255.255.255.0 | tee -a vpn.conf
-	echo DhcpSet /START:${IPADDR}.$start /END:${IPADDR}.$end /MASK:255.255.255.0 /EXPIRE:7200 /GW:${IPADDR}.$start /DNS:8.8.8.8 /DNS2:8.8.4.4 /DOMAIN:" " /LOG:no | tee -a vpn.conf
+	echo DhcpSet /START:${IPADDR}.$start /END:${IPADDR}.$end /MASK:255.255.255.0 /EXPIRE:7200 /GW:${IPADDR}.$start /DNS:208.67.220.220 /DNS2:8.8.8.8 /DOMAIN:" " /LOG:no | tee -a vpn.conf
 	echo ServerPasswordSet ${SPW} | tee -a vpn.conf
 	# 添加额外的监听端口
 	echo ListenerCreate 6666 | tee -a vpn.conf
