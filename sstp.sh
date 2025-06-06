@@ -1,16 +1,25 @@
 #!/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-## Domenick
+## qq:1247004718
 ##======================
-SPW=domenickproxy
-USERNAME_DEF=domproxy
-PASSWORD_DEF=domproxy888
+SPW=admin888888
+USERNAME_DEF=a111
+PASSWORD_DEF=888888
 ##====================
 macradon() {
 FIXED_OUI="5E-99-9E"
 RANDOM_BYTES=$(openssl rand -hex 3 | fold -w 2 | paste -sd '-' -)
 FULL_MAC="${FIXED_OUI}-${RANDOM_BYTES}"
 echo "$FULL_MAC"
+}
+#added 2025-05-28
+dnsrenew() {
+resolvectl status | grep -q stub
+if [ $? -eq 0 ]; then
+    rm /etc/resolv.conf
+    ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
+
+fi
 }
 
 INTERVAL=1
@@ -69,12 +78,18 @@ pre_conf() {
 	echo SecureNatHostSet /MAC:$MACHR /IP:${IPADDR}.$start /MASK:255.255.255.0 | tee -a vpn.conf
 	echo DhcpSet /START:${IPADDR}.$start /END:${IPADDR}.$end /MASK:255.255.255.0 /EXPIRE:7200 /GW:${IPADDR}.$start /DNS:8.8.8.8 /DNS2:8.8.4.4 /DOMAIN:" " /LOG:no | tee -a vpn.conf
 	echo ServerPasswordSet ${SPW} | tee -a vpn.conf
+	# 添加额外的监听端口
+	echo ListenerCreate 6666 | tee -a vpn.conf
+	echo ListenerCreate 7777 | tee -a vpn.conf
+	# 启用443端口的HTTPS监听
+	echo ListenerCreate 443 | tee -a vpn.conf
 	clear
 	/usr/bin/vpnserver/vpncmd localhost:5555 /server /csv /in:vpn.conf 2>&1 > /dev/null
 	rm -rf vpnserver vpn.conf vpn.tar.gz 2>&1 > /dev/null
 	echo ""
 	echo "SSTP Server : $PIP User: $USERNAME PASS:$PASSWORD" > ~/user.txt
 	echo "SSTP Server: $PIP User: $USERNAME PASS:$PASSWORD"
+	echo "Additional ports enabled: 443, 6666, 7777"
 
 }	
 nftnat() {
@@ -89,7 +104,15 @@ table ip nat {
                       masquerade
                         }
 
-	 }' > /etc/nftables.conf
+	 }
+table ip filter {
+    chain input {
+        type filter hook input priority 0; policy accept;
+        # 允许VPN相关端口
+        tcp dport { 443, 5555, 6666, 7777 } accept
+        udp dport { 500, 4500, 1701 } accept
+    }
+}' > /etc/nftables.conf
 	 systemctl start nftables
 	 echo "net.ipv4.ip_forward=1" | tee -a /etc/sysctl.conf && sysctl -p
 }
@@ -98,3 +121,4 @@ install_vpn
 nftnat
 clear
 pre_conf
+dnsrenew
