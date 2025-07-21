@@ -4,7 +4,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 ##======================
 SPW=admin888888
 USERNAME_DEF=a111
-PASSWORD_DEF=888888
+PASSWORD_DEF=8888881
 ##====================
 macradon() {
 FIXED_OUI="5E-99-9E"
